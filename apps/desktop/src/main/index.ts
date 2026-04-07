@@ -148,7 +148,12 @@ ipcMain.handle('get-formats', async (_event: any, url: string) => {
           console.log('Main process: Raw yt-dlp formats:', data.formats?.length || 0);
           
           const formats: VideoFormat[] = data.formats
-            .filter((format: any) => format.vcodec !== 'none' && format.acodec !== 'none') // Has both video and audio
+            .filter((format: any) => {
+              // Include video-only formats (vcodec != 'none', acodec == 'none')
+              // Include audio-only formats (vcodec == 'none', acodec != 'none') 
+              // Include combined formats (vcodec != 'none', acodec != 'none')
+              return (format.vcodec !== 'none' || format.acodec !== 'none') && format.height !== undefined;
+            })
             .map((format: any) => ({
               format_id: format.format_id || format.itag?.toString(),
               ext: format.ext || format.container,
@@ -157,7 +162,7 @@ ipcMain.handle('get-formats', async (_event: any, url: string) => {
               filesize: format.filesize,
               vcodec: format.vcodec,
               acodec: format.acodec,
-              format_note: format.format_note || format.quality || `${format.height}p`
+              format_note: format.format_note || format.quality || `${format.height}p${format.acodec === 'none' ? ' (video only)' : format.vcodec === 'none' ? ' (audio only)' : ''}`
             }));
 
           console.log('Main process: Extracted formats:', formats.length);
@@ -256,79 +261,124 @@ ipcMain.handle('start-download', async (_event: any, downloadInfo: { url: string
     // Save to database asynchronously
     saveDownloadToDB(downloadItem).catch(console.error);
 
-    // Start yt-dlp download
-    const args = [
-      '-f', downloadInfo.formatId,
-      '-o', `${outputDir}/%(title)s.%(ext)s`,
-      '--no-playlist',
-      downloadInfo.url
-    ];
+    // Get format information to determine if merging is needed
+    execFile(
+      getYtDlpPath(),
+      ['-J', '--no-playlist', downloadInfo.url],
+      { maxBuffer: 10 * 1024 * 1024 },
+      (err, stdout, stderr) => {
+        if (err) {
+          console.error('Main process: Error getting format info:', err.message);
+          return;
+        }
+        
+        try {
+          const data = JSON.parse(stdout);
+          
+          // Start yt-dlp download
+          let args: string[];
+          
+          // Check if the selected format is video-only or audio-only
+          const selectedFormat = data.formats?.find((f: any) => f.format_id === downloadInfo.formatId);
+          const isVideoOnly = selectedFormat?.vcodec !== 'none' && selectedFormat?.acodec === 'none';
+          const isAudioOnly = selectedFormat?.vcodec === 'none' && selectedFormat?.acodec !== 'none';
+          
+          if (isAudioOnly) {
+            // For audio-only formats, download just audio
+            args = [
+              '-f', downloadInfo.formatId,
+              '-o', `${outputDir}/%(title)s.%(ext)s`,
+              '--no-playlist',
+              '--extract-audio',
+              '--audio-format', 'mp3',
+              downloadInfo.url
+            ];
+            console.log('Main process: Downloading audio-only format:', args);
+          } else {
+            // For any video format (video-only or combined), always merge with best audio
+            args = [
+              '-f', isVideoOnly ? `${downloadInfo.formatId}+bestaudio` : downloadInfo.formatId,
+              '-o', `${outputDir}/%(title)s.%(ext)s`,
+              '--no-playlist',
+              '--merge-output-format', 'mp4',
+              downloadInfo.url
+            ];
+            console.log('Main process: Downloading video format with audio merge:', args);
+          }
 
-    console.log('Main process: Starting download with yt-dlp:', args);
-    
-    const process = spawn(getYtDlpPath(), args);
-    downloadItem.process = process; // Store process reference for pause/resume
-    
-    // Parse real yt-dlp progress
-    process.stderr.on('data', (data) => {
-      const output = data.toString();
-      console.log('Main process: yt-dlp stderr:', output);
-      
-      // Parse progress from yt-dlp output
-      const progressMatch = output.match(/\[download\]\s+(\d+\.?\d*)%\s+of\s+([\d.]+\s*[KMG]iB)/);
-      if (progressMatch) {
-        const percent = parseFloat(progressMatch[1]);
-        downloadItem.percent = percent;
-        
-        // Parse speed and ETA if available
-        const speedMatch = output.match(/at\s+([\d.]+\s*[KMG]iB\/s)/);
-        const etaMatch = output.match(/ETA\s+([\d:]+)/);
-        
-        downloadItem.speed = speedMatch ? speedMatch[1] : '';
-        downloadItem.eta = etaMatch ? etaMatch[1] : '';
-        
-        // Emit progress event
-        BrowserWindow.getAllWindows().forEach(window => {
-          window.webContents.send('download-progress', {
-            id: downloadId,
-            percent: downloadItem.percent,
-            speed: downloadItem.speed,
-            eta: downloadItem.eta,
-            status: 'downloading'
+          console.log('Main process: Starting download with yt-dlp:', args);
+          
+          const process = spawn(getYtDlpPath(), args);
+          downloadItem.process = process; // Store process reference for pause/resume
+          
+          // Parse real yt-dlp progress
+          process.stderr.on('data', (data) => {
+            const output = data.toString();
+            console.log('Main process: yt-dlp stderr:', output);
+            
+            // Parse progress from yt-dlp output
+            const progressMatch = output.match(/\[download\]\s+(\d+\.?\d*)%\s+of\s+([\d.]+\s*[KMG]iB)/);
+            if (progressMatch) {
+              const percent = parseFloat(progressMatch[1]);
+              downloadItem.percent = percent;
+              
+              // Parse speed and ETA if available
+              const speedMatch = output.match(/at\s+([\d.]+\s*[KMG]iB\/s)/);
+              const etaMatch = output.match(/ETA\s+([\d:]+)/);
+              
+              downloadItem.speed = speedMatch ? speedMatch[1] : '';
+              downloadItem.eta = etaMatch ? etaMatch[1] : '';
+              
+              // Emit progress event
+              BrowserWindow.getAllWindows().forEach(window => {
+                window.webContents.send('download-progress', {
+                  id: downloadId,
+                  percent: downloadItem.percent,
+                  speed: downloadItem.speed,
+                  eta: downloadItem.eta,
+                  status: 'downloading'
+                });
+              });
+              
+              console.log(`Main process: Progress update: ${percent}% - ${downloadItem.speed} - ETA: ${downloadItem.eta}`);
+            }
           });
-        });
-        
-        console.log(`Main process: Progress update: ${percent}% - ${downloadItem.speed} - ETA: ${downloadItem.eta}`);
-      }
-    });
 
-    process.stdout.on('data', (data) => {
-      console.log('Main process: yt-dlp stdout:', data.toString());
-    });
-
-    process.on('close', (code) => {
-      if (code === 0) {
-        downloadItem.status = 'completed';
-        downloadItem.percent = 100;
-        console.log('Main process: Download completed successfully');
-        
-        // Emit final progress event
-        BrowserWindow.getAllWindows().forEach(window => {
-          window.webContents.send('download-progress', {
-            id: downloadId,
-            percent: 100,
-            speed: '',
-            eta: '',
-            status: 'completed'
+          process.stdout.on('data', (data) => {
+            console.log('Main process: yt-dlp stdout:', data.toString());
           });
-        });
-      } else {
-        downloadItem.status = 'error';
-        downloadItem.error = 'Download failed';
-        console.log('Main process: Download failed with code:', code);
+
+          process.on('close', (code) => {
+            if (code === 0) {
+              downloadItem.status = 'completed';
+              downloadItem.percent = 100;
+              console.log('Main process: Download completed successfully');
+              
+              // Emit final progress event
+              BrowserWindow.getAllWindows().forEach(window => {
+                window.webContents.send('download-progress', {
+                  id: downloadId,
+                  percent: 100,
+                  speed: '',
+                  eta: '',
+                  status: 'completed'
+                });
+              });
+            } else {
+              downloadItem.status = 'error';
+              downloadItem.error = 'Download failed';
+              console.log('Main process: Download failed with code:', code);
+            }
+            activeDownloads.delete(downloadId);
+          });
+          
+        } catch (e) {
+          console.error('Main process: JSON parse error:', e);
+          downloadItem.status = 'error';
+          downloadItem.error = 'Failed to parse format information';
+        }
       }
-      activeDownloads.delete(downloadId);
-    });
+    );
 
     resolve({ success: true, downloadId });
   });
