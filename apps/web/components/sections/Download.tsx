@@ -1,15 +1,48 @@
+"use client";
+
 import { Monitor, Apple, Terminal } from "lucide-react";
 import { VERSION, GITHUB_REPO } from "@/lib/version";
+import { useState, useEffect } from "react";
 
 export default function Download() {
   const version = VERSION;
   const githubRepoUrl = `https://github.com/${GITHUB_REPO}`;
+  const [latestBuildUrl, setLatestBuildUrl] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Fetch latest successful build artifacts
+  useEffect(() => {
+    const fetchLatestBuild = async () => {
+      try {
+        const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/actions/runs?branch=main&status=success&per_page=1`);
+        const data = await response.json();
+        
+        if (data.workflow_runs && data.workflow_runs.length > 0) {
+          const latestRun = data.workflow_runs[0];
+          setLatestBuildUrl(`${latestRun.html_url}#artifacts`);
+        } else {
+          // Fallback to releases if no successful workflow runs
+          const releasesResponse = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`);
+          const releasesData = await releasesResponse.json();
+          setLatestBuildUrl(releasesData.html_url || githubRepoUrl);
+        }
+      } catch (error) {
+        console.error('Failed to fetch latest build:', error);
+        // Fallback to repo URL
+        setLatestBuildUrl(githubRepoUrl);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLatestBuild();
+  }, [githubRepoUrl]);
   
   const downloads = [
     {
       platform: "Windows",
       icon: Monitor,
-      url: "https://github.com/a7mdmo74/media-harvest/actions/runs/24070910303#artifacts",
+      url: latestBuildUrl || githubRepoUrl,
       extension: ".exe",
       description: "Windows 10/11",
       artifact: "windows-installer",
@@ -19,7 +52,7 @@ export default function Download() {
     {
       platform: "macOS",
       icon: Apple,
-      url: "https://github.com/a7mdmo74/media-harvest/actions/runs/24070910303#artifacts",
+      url: latestBuildUrl || githubRepoUrl,
       extension: ".dmg",
       description: "macOS 10.15+",
       artifact: "macos-installer",
@@ -29,7 +62,7 @@ export default function Download() {
     {
       platform: "Linux",
       icon: Terminal,
-      url: "https://github.com/a7mdmo74/media-harvest/actions/runs/24070910303#artifacts",
+      url: latestBuildUrl || githubRepoUrl,
       extension: ".AppImage",
       description: "Ubuntu, Fedora, etc.",
       artifact: "linux-installer",
@@ -64,6 +97,9 @@ export default function Download() {
                   <div className="font-medium text-white">{download.platform}</div>
                   <div className="text-sm text-zinc-400">{download.extension} · v{version} · {download.size}</div>
                   <div className="text-xs text-zinc-500">{download.description}</div>
+                  {isLoading && (
+                    <div className="text-xs text-blue-400 mt-1">Loading latest build...</div>
+                  )}
                 </div>
               </a>
             );

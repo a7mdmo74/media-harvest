@@ -311,20 +311,28 @@ ipcMain.handle('start-download', async (_event: any, downloadInfo: { url: string
           const process = spawn(getYtDlpPath(), args);
           downloadItem.process = process; // Store process reference for pause/resume
           
-          // Parse real yt-dlp progress
-          process.stderr.on('data', (data) => {
-            const output = data.toString();
-            console.log('Main process: yt-dlp stderr:', output);
+          // Enhanced progress parsing function
+          const parseProgress = (output: string) => {
+            console.log('Main process: Parsing yt-dlp output:', output);
             
-            // Parse progress from yt-dlp output
-            const progressMatch = output.match(/\[download\]\s+(\d+\.?\d*)%\s+of\s+([\d.]+\s*[KMG]iB)/);
+            // Try multiple regex patterns for different yt-dlp output formats
+            let progressMatch = output.match(/\[download\]\s+(\d+\.?\d*)%/);
+            if (!progressMatch) {
+              progressMatch = output.match(/(\d+\.?\d*)%\s+of/);
+            }
+            if (!progressMatch) {
+              progressMatch = output.match(/(\d+\.?\d*)%/);
+            }
+            
             if (progressMatch) {
               const percent = parseFloat(progressMatch[1]);
               downloadItem.percent = percent;
               
               // Parse speed and ETA if available
-              const speedMatch = output.match(/at\s+([\d.]+\s*[KMG]iB\/s)/);
-              const etaMatch = output.match(/ETA\s+([\d:]+)/);
+              const speedMatch = output.match(/at\s+([\d.]+\s*[KMG]iB\/s)/) || 
+                                output.match(/([\d.]+\s*[KMG]iB\/s)/);
+              const etaMatch = output.match(/ETA\s+([\d:]+)/) || 
+                             output.match(/(\d+:\d+:\d+)/);
               
               downloadItem.speed = speedMatch ? speedMatch[1] : '';
               downloadItem.eta = etaMatch ? etaMatch[1] : '';
@@ -341,11 +349,46 @@ ipcMain.handle('start-download', async (_event: any, downloadInfo: { url: string
               });
               
               console.log(`Main process: Progress update: ${percent}% - ${downloadItem.speed} - ETA: ${downloadItem.eta}`);
+              return true;
             }
+            return false;
+          };
+          
+          // Monitor both stdout and stderr for progress
+          process.stdout.on('data', (data) => {
+            const output = data.toString();
+            console.log('Main process: yt-dlp stdout:', output);
+            parseProgress(output);
           });
 
-          process.stdout.on('data', (data) => {
-            console.log('Main process: yt-dlp stdout:', data.toString());
+          process.stderr.on('data', (data) => {
+            const output = data.toString();
+            console.log('Main process: yt-dlp stderr:', output);
+            parseProgress(output);
+          });
+          
+          // Fallback: Send periodic progress updates to ensure UI doesn't freeze
+          let lastProgressUpdate = 0;
+          const progressInterval = setInterval(() => {
+            const now = Date.now();
+            // Only update if it's been at least 1 second since last real update
+            if (now - lastProgressUpdate > 1000 && downloadItem.status === 'downloading') {
+              BrowserWindow.getAllWindows().forEach(window => {
+                window.webContents.send('download-progress', {
+                  id: downloadId,
+                  percent: downloadItem.percent,
+                  speed: downloadItem.speed,
+                  eta: downloadItem.eta,
+                  status: 'downloading'
+                });
+              });
+              lastProgressUpdate = now;
+            }
+          }, 2000);
+          
+          // Clear interval when process closes
+          process.on('close', () => {
+            clearInterval(progressInterval);
           });
 
           process.on('close', (code) => {
