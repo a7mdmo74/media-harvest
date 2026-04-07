@@ -31,16 +31,12 @@ interface DownloadData {
 export default function DownloadAnalytics() {
   const [data, setData] = useState<DownloadData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [period, setPeriod] = useState<'day' | 'week' | 'month' | 'year'>('week');
 
-  useEffect(() => {
-    fetchMetrics();
-  }, [period]);
 
   const fetchMetrics = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/downloads?period=${period}`);
+      const response = await fetch(`/api/downloads?period=year`);
       if (response.ok) {
         const metrics = await response.json();
         setData(metrics);
@@ -92,23 +88,7 @@ export default function DownloadAnalytics() {
 
   return (
     <div className="space-y-8">
-      {/* Period Selector */}
-      <div className="flex flex-wrap gap-2 justify-center">
-        {(['day', 'week', 'month', 'year'] as const).map((p) => (
-          <Button
-            key={p}
-            variant={period === p ? 'default' : 'outline'}
-            onClick={() => setPeriod(p)}
-            className={`capitalize transition-all duration-200 ${
-              period === p 
-                ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 shadow-lg shadow-blue-600/25' 
-                : 'border-zinc-700 bg-zinc-900/50 text-zinc-300 hover:bg-zinc-800/50 hover:text-white hover:border-zinc-600'
-            }`}
-          >
-            {p}
-          </Button>
-        ))}
-      </div>
+
 
       {/* Hero Stats Card */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 p-8 border border-blue-500/20 shadow-2xl">
