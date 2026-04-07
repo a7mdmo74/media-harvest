@@ -1,0 +1,58 @@
+/**
+ * Media Harvest — shared brand tokens (marketing site + desktop shell).
+ * Imported from apps/web/app/globals.css and apps/desktop/src/index.css
+ */
+
+:root {
+  --mh-app-bg-base: #09090b;
+  --mh-app-fg: #fafafa;
+  --mh-app-bg-gradient: radial-gradient(
+      ellipse 90% 55% at 50% -15%,
+      rgba(220, 38, 38, 0.14),
+      transparent 55%
+    ),
+    radial-gradient(ellipse 70% 50% at 100% 0%, rgba(63, 63, 70, 0.35), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 0% 100%, rgba(39, 39, 42, 0.5), transparent 45%);
+  --mh-app-light-bg: linear-gradient(165deg, #f8fafc 0%, #f1f5f9 45%, #e2e8f0 100%);
+  --mh-app-light-fg: #0f172a;
+  --mh-radius-xl: 0.75rem;
+  --mh-radius-2xl: 1rem;
+  --mh-font-stack: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+}
+
+/* Full-page dark shell (desktop .mh-app-dark + marketing site body) */
+.mh-site-shell {
+  background-color: var(--mh-app-bg-base);
+  background-image: var(--mh-app-bg-gradient);
+  color: var(--mh-app-fg);
+}
+
+.mh-app-light {
+  background: var(--mh-app-light-bg);
+  color: var(--mh-app-light-fg);
+}
+
+/**
+ * Card surface parity with desktop mhCard (dark zinc-900 panel).
+ */
+.mh-app-card-dark {
+  border-radius: var(--mh-radius-2xl);
+  border: 1px solid rgb(39 39 42 / 0.9);
+  background-color: rgb(24 24 27 / 0.75);
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.35), inset 0 1px 0 0 rgb(255 255 255 / 0.05);
+}
+
+/** Slightly smaller promo card (Hero demo, inner panels) */
+.mh-promo-card-dark {
+  border-radius: var(--mh-radius-xl);
+  border: 1px solid rgb(39 39 42);
+  background-color: rgb(24 24 27 / 0.85);
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.25), inset 0 1px 0 0 rgb(255 255 255 / 0.04);
+}
+
+/** Section band on top of gradient (subtle separation) */
+.mh-section-band {
+  background-color: rgb(9 9 11 / 0.45);
+  border-color: rgb(39 39 42 / 0.5);
+}

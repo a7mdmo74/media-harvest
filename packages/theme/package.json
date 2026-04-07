@@ -1,0 +1,6 @@
+{
+  "name": "@media-harvest/theme",
+  "version": "1.0.1",
+  "private": true,
+  "description": "Shared CSS design tokens for Media Harvest (web + desktop)"
+}

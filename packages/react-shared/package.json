@@ -1,0 +1,25 @@
+{
+  "name": "@media-harvest/react-shared",
+  "version": "1.0.1",
+  "private": true,
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "lucide-react": "^0.460.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "exports": {
+    ".": "./index.ts",
+    "./react": "./react.ts",
+    "./react-dom": "./react-dom.ts",
+    "./types": "./types.ts",
+    "./icons": "./icons.ts"
+  }
+}

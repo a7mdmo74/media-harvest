@@ -1,0 +1,175 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Media Harvest Brand Colors */
+:root {
+  --mh-app-bg-base: #09090b;
+  --mh-app-fg: #fafafa;
+  --mh-app-bg-gradient: radial-gradient(
+      ellipse 90% 55% at 50% -15%,
+      rgba(59, 130, 246, 0.14),
+      transparent 55%
+    ),
+    radial-gradient(ellipse 70% 50% at 100% 0%, rgba(63, 63, 70, 0.35), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 0% 100%, rgba(39, 39, 42, 0.5), transparent 45%);
+  --mh-radius-xl: 0.75rem;
+  --mh-radius-2xl: 1rem;
+  
+  /* shadcn/ui CSS variables mapped to brand theme */
+  --background: 9 9 11;
+  --foreground: 250 250 250;
+  --card: 24 24 27;
+  --card-foreground: 250 250 250;
+  --popover: 24 24 27;
+  --popover-foreground: 250 250 250;
+  --primary: 59 130 246; /* Blue color for main button */
+  --primary-foreground: 250 204 21; /* Yellow text for main button */
+  --secondary: 250 204 21; /* Yellow background for badges */
+  --secondary-foreground: 9 9 11; /* Dark text for badges */
+  --muted: 63 63 70;
+  --muted-foreground: 161 161 170;
+  --accent: 63 63 70;
+  --accent-foreground: 250 250 250;
+  --destructive: 220 38 38;
+  --destructive-foreground: 250 250 250;
+  --border: 63 63 70;
+  --input: 39 39 42;
+  --ring: 59 130 246; /* Blue ring color */
+  --radius: 0.75rem;
+}
+
+/* Light theme */
+.light {
+  --mh-app-bg-base: #ffffff;
+  --mh-app-fg: #09090b;
+  --mh-app-bg-gradient: radial-gradient(
+      ellipse 90% 55% at 50% -15%,
+      rgba(59, 130, 246, 0.08),
+      transparent 55%
+    ),
+    radial-gradient(ellipse 70% 50% at 100% 0%, rgba(200, 200, 210, 0.3), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 0% 100%, rgba(220, 220, 225, 0.4), transparent 45%);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--mh-app-bg-base);
+  background-image: var(--mh-app-bg-gradient);
+  color: var(--mh-app-fg);
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease, background-image 0.3s ease;
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
+
+/* Media Harvest Modern Card Styles */
+.mh-card {
+  @apply rounded-2xl border transition-shadow;
+  @apply border-zinc-800/90 bg-zinc-900/75 shadow-xl shadow-black/35 ring-1 ring-inset ring-white/[0.05];
+}
+
+.mh-card-header {
+  @apply flex items-center gap-2 border-b px-4 py-2.5;
+  @apply border-zinc-800/80 bg-zinc-950/30;
+}
+
+.light .mh-card {
+  @apply border-zinc-200/90 bg-white/90 shadow-xl shadow-zinc-200/25 ring-1 ring-inset ring-zinc-200/[0.05];
+}
+
+.light .mh-card-header {
+  @apply border-zinc-200/80 bg-zinc-50/50;
+}
+
+.mh-section-label {
+  @apply text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500;
+}
+
+.mh-body-text {
+  @apply text-zinc-400;
+}
+
+.mh-title-text {
+  @apply text-zinc-100;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Button styles */
+.btn-primary {
+  @apply bg-primary text-primary-foreground px-4 py-2 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105;
+}
+
+.btn-primary:disabled {
+  @apply opacity-60 cursor-not-allowed;
+}
+
+.btn-red {
+  @apply bg-red-600 text-white px-4 py-2 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 hover:bg-red-700;
+}
+
+.btn-red:disabled {
+  @apply opacity-60 cursor-not-allowed;
+}
+
+/* Input styles */
+.input {
+  @apply h-12 flex-1 rounded-xl border text-[15px] transition-all duration-200 focus-visible:ring-2;
+  @apply border-input bg-background text-foreground placeholder:text-muted-foreground;
+  @apply focus-visible:border-ring focus-visible:ring-ring/20;
+}
+
+.light .input {
+  @apply border-zinc-300 bg-white/80 text-zinc-900 placeholder:text-zinc-500;
+  @apply focus-visible:border-ring/50 focus-visible:ring-ring/20;
+}
+
+/* Progress bar */
+.progress {
+  @apply h-2 w-full overflow-hidden rounded-full bg-muted;
+}
+
+.light .progress {
+  @apply bg-zinc-300;
+}
+
+.progress-fill {
+  @apply h-full rounded-full bg-primary transition-all duration-300;
+}
+
+/* Icon container */
+.icon-container {
+  @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground;
+}
+
+.light .icon-container {
+  @apply bg-zinc-100 text-zinc-700;
+}

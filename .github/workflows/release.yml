@@ -1,0 +1,166 @@
+name: Build & Release
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+      - name: Fetch tags
+        run: git fetch --tags --force
+        shell: bash
+      - name: Install dependencies
+        run: bun install
+      - name: Install desktop dependencies
+        run: bun install --cwd apps/desktop
+      - name: Verify TypeScript installation
+        run: |
+          cd apps/desktop
+          bunx tsc --version
+        shell: pwsh
+      - name: Build desktop app
+        run: |
+          cd apps/desktop
+          bun run build:main
+          bun run build:renderer
+        shell: pwsh
+      - name: Verify build output
+        run: |
+          echo Build output:
+          Get-ChildItem -Force apps/desktop/dist/
+          echo Main file exists:
+          Get-ChildItem -Force apps/desktop/dist/main/index.js
+        shell: pwsh
+      - name: Build Windows installer
+        run: bun --cwd apps/desktop package:win
+      - name: Track download
+        run: |
+          $trackingUrl = "${{ env.DOWNLOAD_TRACKING_URL || 'https://your-domain.com/api/downloads' }}"
+          $downloadData = @{
+            version = "1.0.1"
+            platform = "windows"
+            source = "github"
+          } | ConvertTo-Json
+          
+          try {
+            $response = Invoke-RestMethod -Uri $trackingUrl -Method POST -Body $downloadData -ContentType "application/json" -TimeoutSec 10
+            Write-Host "Download tracking successful: $response"
+          } catch {
+            Write-Host "Download tracking failed (this is expected if the tracking service is not configured): $($_.Exception.Message)"
+          }
+        shell: pwsh
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: apps/desktop/release/*.exe
+          retention-days: 30
+
+  build-linux:
+    needs: build-windows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install
+      - name: Install desktop dependencies
+        run: bun install --cwd apps/desktop
+      - name: Build desktop app
+        run: |
+          cd apps/desktop
+          bun run build:main
+          bun run build:renderer
+        shell: bash
+      - name: Verify build output
+        run: |
+          echo Build output:
+          ls -la apps/desktop/dist/
+          echo Main file exists:
+          ls -la apps/desktop/dist/main/index.js
+        shell: bash
+      - name: Build Linux installer
+        run: bun --cwd apps/desktop package:linux
+      - name: Track download
+        run: |
+          trackingUrl="${{ env.DOWNLOAD_TRACKING_URL || 'https://your-domain.com/api/downloads' }}"
+          downloadData='{"version": "1.0.1", "platform": "linux", "source": "github"}'
+          
+          if curl -f -s -X POST "$trackingUrl" \
+               -H "Content-Type: application/json" \
+               -d "$downloadData" \
+               --max-time 10; then
+            echo "Download tracking successful"
+          else
+            echo "Download tracking failed (this is expected if the tracking service is not configured)"
+          fi
+        shell: bash
+      - name: Upload Linux installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-installer
+          path: apps/desktop/release/*.AppImage
+          retention-days: 30
+
+  build-mac:
+    needs: build-linux
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install
+      - name: Install desktop dependencies
+        run: bun install --cwd apps/desktop
+      - name: Build desktop app
+        run: |
+          cd apps/desktop
+          bun run build:main
+          bun run build:renderer
+        shell: bash
+      - name: Verify build output
+        run: |
+          echo Build output:
+          ls -la apps/desktop/dist/
+          echo Main file exists:
+          ls -la apps/desktop/dist/main/index.js
+        shell: bash
+      - name: Build macOS installer
+        run: bun --cwd apps/desktop package:mac
+      - name: Track download
+        run: |
+          trackingUrl="${{ env.DOWNLOAD_TRACKING_URL || 'https://your-domain.com/api/downloads' }}"
+          downloadData='{"version": "1.0.1", "platform": "mac", "source": "github"}'
+          
+          if curl -f -s -X POST "$trackingUrl" \
+               -H "Content-Type: application/json" \
+               -d "$downloadData" \
+               --max-time 10; then
+            echo "Download tracking successful"
+          else
+            echo "Download tracking failed (this is expected if the tracking service is not configured)"
+          fi
+        shell: bash
+      - name: Upload macOS installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-installer
+          path: apps/desktop/release/*.dmg
+          retention-days: 30

@@ -1,0 +1,68 @@
+{
+  "appId": "com.mediaharvest.desktop",
+  "productName": "Media Harvest",
+  "copyright": "Copyright © 2026 Media Harvest",
+  "directories": { 
+    "output": "release", 
+    "buildResources": "assets" 
+  },
+  "files": [
+    "dist/**/*",
+    "node_modules/**/*",
+    "package.json"
+  ],
+  "extraResources": [
+    {
+      "from": "node_modules/yt-dlp",
+      "to": "yt-dlp",
+      "filter": ["**/*"]
+    }
+  ],
+  "win": {
+    "icon": "assets/icon.png",
+    "target": [{ 
+      "target": "nsis", 
+      "arch": ["x64"] 
+    }],
+    "publisherName": "Media Harvest"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Media Harvest",
+    "include": "installer.nsh"
+  },
+  "mac": {
+    "icon": "assets/icon.icns",
+    "category": "public.app-category.utilities",
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["x64", "arm64"]
+      }
+    ]
+  },
+  "linux": {
+    "icon": "assets/icon.png",
+    "category": "Utility",
+    "target": [
+      {
+        "target": "AppImage",
+        "arch": ["x64"]
+      },
+      {
+        "target": "deb",
+        "arch": ["x64"]
+      }
+    ]
+  },
+  "publish": { 
+    "provider": "github",
+    "owner": "media-harvest",
+    "repo": "media-harvest"
+  },
+  "compression": "maximum",
+  "removePackageScripts": true
+}

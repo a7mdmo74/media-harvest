@@ -1,0 +1,91 @@
+{
+  "name": "media-harvest-desktop",
+  "version": "1.0.1",
+  "description": "Media Harvest Desktop Application",
+  "main": "dist/main/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/a7mdmo74/media-harvest.git"
+  },
+  "scripts": {
+    "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && NODE_ENV=development electron .\"",
+    "build": "tsc --project tsconfig.main.json && vite build",
+    "build:main": "tsc --project tsconfig.main.json",
+    "build:renderer": "vite build",
+    "package": "npm run build && electron-builder --publish never",
+    "package:win": "npm run build && electron-builder --win --publish never",
+    "package:mac": "npm run build && electron-builder --mac --publish never",
+    "package:linux": "npm run build && electron-builder --linux --publish never",
+    "start": "NODE_ENV=production electron .",
+    "start:dev": "NODE_ENV=development electron .",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": ["electron", "media", "download", "youtube"],
+  "author": "Media Harvest Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.16.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/sqlite3": "^5.1.0",
+    "concurrently": "^9.1.0",
+    "electron": "^32.3.3",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.6.3",
+    "vite": "^6.0.3",
+    "@vitejs/plugin-react": "^4.3.0",
+    "wait-on": "^8.0.1"
+  },
+  "dependencies": {
+    "@media-harvest/version": "workspace:*",
+    "@radix-ui/react-slot": "^1.2.4",
+    "autoprefixer": "^10.4.27",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "electron-updater": "^6.3.0",
+    "lucide-react": "^0.460.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sonner": "^1.5.0",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^6.0.1",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss": "^3.4.0"
+  },
+  "build": {
+    "appId": "com.mediaharvest.desktop",
+    "productName": "Media Harvest",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "assets/icon.png"
+    ],
+    "extraResources": [
+      {
+        "from": "assets",
+        "to": "assets"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.png"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "assets/icon.png",
+      "category": "public.app-category.video"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png",
+      "category": "AudioVideo"
+    }
+  }
+}

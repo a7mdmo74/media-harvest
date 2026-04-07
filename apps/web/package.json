@@ -1,0 +1,49 @@
+{
+  "name": "@media-harvest/web",
+  "version": "1.0.1",
+  "private": true,
+  "author": "a7mdmo74 <https://www.linkedin.com/in/a7mdmo74/>",
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "db:seed": "bun run scripts/seed-downloads.ts"
+  },
+  "dependencies": {
+    "@media-harvest/build-shared": "workspace:*",
+    "@media-harvest/react-shared": "workspace:*",
+    "@media-harvest/styling-shared": "workspace:*",
+    "@media-harvest/theme": "workspace:*",
+    "@media-harvest/types": "workspace:*",
+    "@media-harvest/ui": "workspace:*",
+    "@media-harvest/version": "workspace:*",
+    "@radix-ui/react-slot": "^1.2.4",
+    "@tailwindcss/vite": "^4.0.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "dotenv": "^16.4.5",
+    "drizzle-orm": "^0.30.0",
+    "lucide-react": "^0.460.0",
+    "next": "16.2.2",
+    "react": "19",
+    "react-dom": "19",
+    "sonner": "^1.5.0",
+    "tailwind-merge": "^3.5.0"
+  },
+  "_paddleComment": "@paddle/paddle-node-sdk is temporarily removed while in free-only mode; add back for paid plan as TODO.",
+  "devDependencies": {
+    "@media-harvest/build-shared": "workspace:*",
+    "tailwindcss": "^4.0.0",
+    "autoprefixer": "^10.4.27",
+    "tailwindcss-animate": "^1.0.7",
+    "drizzle-kit": "^0.21.0",
+    "typescript": "^5.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/node": "^20.0.0"
+  }
+}
