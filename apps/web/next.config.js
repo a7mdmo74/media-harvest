@@ -18,6 +18,8 @@ const nextConfig = {
     '@media-harvest/license',
     '@media-harvest/theme'
   ],
+  // Set the root directory to avoid lockfile conflicts
+  outputFileTracingRoot: path.resolve(__dirname, '../../'),
   // Use webpack instead of Turbopack for compatibility
   webpack: (config, { isServer }) => {
     // Add path aliases

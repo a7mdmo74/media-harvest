@@ -37,13 +37,14 @@
   "_paddleComment": "@paddle/paddle-node-sdk is temporarily removed while in free-only mode; add back for paid plan as TODO.",
   "devDependencies": {
     "@media-harvest/build-shared": "workspace:*",
-    "tailwindcss": "^4.0.0",
-    "autoprefixer": "^10.4.27",
-    "tailwindcss-animate": "^1.0.7",
-    "drizzle-kit": "^0.21.0",
-    "typescript": "^5.0.0",
+    "@tailwindcss/postcss": "^4.2.2",
+    "@types/node": "^20.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@types/node": "^20.0.0"
+    "autoprefixer": "^10.4.27",
+    "drizzle-kit": "^0.21.0",
+    "tailwindcss": "^4.0.0",
+    "tailwindcss-animate": "^1.0.7",
+    "typescript": "^5.0.0"
   }
 }
