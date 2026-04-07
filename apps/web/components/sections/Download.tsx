@@ -1,3 +1,5 @@
+"use client";
+
 import { Monitor, Apple, Terminal } from "lucide-react";
 import { VERSION, GITHUB_REPO } from "@/lib/version";
 import { useState, useEffect } from "react";
