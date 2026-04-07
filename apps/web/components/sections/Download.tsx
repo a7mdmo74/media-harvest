@@ -9,7 +9,7 @@ export default function Download() {
     {
       platform: "Windows",
       icon: Monitor,
-      url: "https://github.com/a7mdmo74/media-harvest/actions/runs/24070082486#artifacts",
+      url: "https://github.com/a7mdmo74/media-harvest/actions/runs/24070910303#artifacts",
       extension: ".exe",
       description: "Windows 10/11",
       artifact: "windows-installer",
@@ -19,7 +19,7 @@ export default function Download() {
     {
       platform: "macOS",
       icon: Apple,
-      url: "https://github.com/a7mdmo74/media-harvest/actions/runs/24070082486#artifacts",
+      url: "https://github.com/a7mdmo74/media-harvest/actions/runs/24070910303#artifacts",
       extension: ".dmg",
       description: "macOS 10.15+",
       artifact: "macos-installer",
@@ -29,7 +29,7 @@ export default function Download() {
     {
       platform: "Linux",
       icon: Terminal,
-      url: "https://github.com/a7mdmo74/media-harvest/actions/runs/24070082486#artifacts",
+      url: "https://github.com/a7mdmo74/media-harvest/actions/runs/24070910303#artifacts",
       extension: ".AppImage",
       description: "Ubuntu, Fedora, etc.",
       artifact: "linux-installer",
